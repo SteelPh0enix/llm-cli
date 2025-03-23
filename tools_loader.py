@@ -138,9 +138,14 @@ def _parse_doc_comment(comment: str) -> tuple[str, dict[str, str]]:
     parameter_regex = r"-(.*?)(\(.*?\))?:(.*)"
     parameters_header_position = comment.find(parameters_header)
     if parameters_header_position == -1:
-        return comment.strip(), {}
+        return comment.strip().replace("\n", " ").replace("\t", " "), {}
 
-    description = comment[:parameters_header_position].strip()
+    description = (
+        comment[:parameters_header_position]
+        .strip()
+        .replace("\n", " ")
+        .replace("\t", " ")
+    )
     parameters_docs = comment[
         parameters_header_position + len(parameters_header) :
     ].strip()
