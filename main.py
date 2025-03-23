@@ -48,7 +48,9 @@ def stream_chat_response(messages: list[ChatMessage]) -> str:
     return complete_message
 
 
-def use_tool(messages: list[ChatMessage], tools: list[LLMFunction]) -> tuple[str, str | None]:
+def use_tool(
+    messages: list[ChatMessage], tools: list[LLMFunction]
+) -> tuple[str, str | None]:
     response: ollama.ChatResponse = ollama.chat(
         model=MODEL_NAME,
         messages=messages,
@@ -63,7 +65,7 @@ def use_tool(messages: list[ChatMessage], tools: list[LLMFunction]) -> tuple[str
     tool_function = tool_call.function
     if tool_function.name not in [tool.name for tool in tools]:
         raise ValueError(f"Unknown tool: {tool_function.name}")
-    
+
     tool = [tool for tool in tools if tool.name == tool_function.name][0]
     tool_result = tool.function(**tool_function.arguments)
 
@@ -101,7 +103,9 @@ def main() -> int:
                 response, called_tool_name = use_tool(conversation, tools)
                 if called_tool_name:
                     conversation.append({"role": "tool", "content": response})
-                    print(f"[{called_tool_name} tool return value: {response}]")
+                    print(f"[{called_tool_name} called, return value: {response}]")
+                    post_tool_response = stream_chat_response(conversation)
+                    conversation.append({"role": "assistant", "content": post_tool_response})
                 else:
                     conversation.append({"role": "assistant", "content": response})
                     print(response)
