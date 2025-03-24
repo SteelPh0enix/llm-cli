@@ -111,7 +111,7 @@ def parse_args() -> CLIArgs:
 
 
 def stream_chat_response(model: str, chat: ChatHistory) -> str:
-    stream: Iterator[ollama.ChatResponse] = ollama.chat( # type: ignore
+    stream: Iterator[ollama.ChatResponse] = ollama.chat(  # type: ignore
         model=model,
         messages=chat.to_json(),
         stream=True,
@@ -130,7 +130,7 @@ def stream_chat_response(model: str, chat: ChatHistory) -> str:
 def use_tool(
     model: str, chat: ChatHistory, tools: list[LLMFunction]
 ) -> tuple[str, str | None]:
-    response: ollama.ChatResponse = ollama.chat( # type: ignore
+    response: ollama.ChatResponse = ollama.chat(  # type: ignore
         model=model,
         messages=chat.to_json(),
         tools=[tool.to_json() for tool in tools],
@@ -146,9 +146,9 @@ def use_tool(
         raise ValueError(f"Unknown tool: {tool_function.name}")
 
     tool = [tool for tool in tools if tool.name == tool_function.name][0]
-    tool_result = tool.function(**tool_function.arguments) # type: ignore
+    tool_result = tool.function(**tool_function.arguments)  # type: ignore
 
-    return str(tool_result), tool_function.name # type: ignore
+    return str(tool_result), tool_function.name  # type: ignore
 
 
 def tools_list_to_str(tools: list[LLMFunction]) -> str:
@@ -204,9 +204,17 @@ def handle_user_command(
         case "help":
             print(colored_system_message("Available commands:"))
             print(colored_system_message("tool: enable tool calling"))
-            print(colored_system_message("tool-prompt: enable tool calling + apply a prompt to encourage tool usage"))
+            print(
+                colored_system_message(
+                    "tool-prompt: enable tool calling + apply a prompt to encourage tool usage"
+                )
+            )
             print(colored_system_message("exit: exit the application"))
-            print(colored_system_message("reset: reset the conversation to its initial state (with system prompt message)"))
+            print(
+                colored_system_message(
+                    "reset: reset the conversation to its initial state (with system prompt message)"
+                )
+            )
             print(colored_system_message("help: print this message"))
         case _:
             print(colored_system_message(f"Invalid command: '{command}', try /help"))
