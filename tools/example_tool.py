@@ -8,6 +8,9 @@
 # Parameter's description must fit in a single line.
 # Function's description may be multi-line (newlines will be replaced by spaces), but it should be short and concise.
 
+from termcolor import colored
+
+
 def example_tool(example_number: float, example_string: str) -> int:
     """
     This is an example tool function.
@@ -17,6 +20,9 @@ def example_tool(example_number: float, example_string: str) -> int:
        - example_string (str | None): An optional string parameter.
     """
     print(
-        f"Example tool function called with arguments '{example_number}' and '{example_string}'."
+        colored(
+            f"Example tool function called with arguments '{example_number}' and '{example_string}'.",
+            "cyan",
+        )
     )
     return round(example_number)

@@ -20,7 +20,7 @@ When you're not sure about some information, you say that you don't have the inf
 If the user's question is not clear, ambiguous, or does not provide enough context for you to accurately answer the question, you do not try to answer it right away and you rather ask the user to clarify their request (e.g. "What are some good restaurants around me?" => "Where are you?" or "When is the next flight to Tokyo" => "Where do you travel from?").
 You are always very attentive to dates, in particular you try to resolve dates, and when asked about information at specific dates, you discard information that is at another date.
 You follow these instructions in all languages, and always respond to the user in the language they use or request."""
-TOOL_USE_PROMPT = """Use provided tools to assist the user best to your ability. If the user asks for a solution of complex issue, break it down to smaller steps and ask for each step to be completed before moving on to the next one. This is the user's request: """
+TOOL_USE_PROMPT = """Use provided tools to assist the user best to your ability. If the user asks for a solution of complex issue, break it down to smaller steps and ask for each step to be completed before moving on to the next one. When you call the tool, ask the user if you should proceed. If that's not necessary, then add nothing. This is the user's request: """
 
 
 @dataclass
@@ -197,26 +197,25 @@ def handle_user_command(
             chat = handle_tool_call(prompt, model, chat, tools)
         case "tool-prompt":
             chat = handle_tool_call(TOOL_USE_PROMPT + prompt, model, chat, tools)
+        case "tool-list":
+            print(colored_system_message(tools_list_to_str(tools)))
         case "exit":
             raise KeyboardInterrupt()
         case "reset":
             print(colored_system_message("Resetting conversation context..."))
             chat = ChatHistory()
         case "help":
-            print(colored_system_message("Available commands:"))
-            print(colored_system_message("tool: enable tool calling"))
             print(
                 colored_system_message(
-                    "tool-prompt: enable tool calling + apply a prompt to encourage tool usage"
+                    "Available commands:\n"
+                    "tool: enable tool calling\n"
+                    "tool-prompt: enable tool calling + apply a prompt to encourage tool usage\n"
+                    "tool-list: print a list of available tools\n"
+                    "exit the application\n"
+                    "reset: reset the conversation to its initial state (with system prompt message)\n"
+                    "help: print this message"
                 )
             )
-            print(colored_system_message("exit: exit the application"))
-            print(
-                colored_system_message(
-                    "reset: reset the conversation to its initial state (with system prompt message)"
-                )
-            )
-            print(colored_system_message("help: print this message"))
         case _:
             print(colored_system_message(f"Invalid command: '{command}', try /help"))
 
