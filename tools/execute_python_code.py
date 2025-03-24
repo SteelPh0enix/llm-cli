@@ -1,7 +1,7 @@
 from termcolor import colored
 # some imports for the LLM
-import os # type: ignore
-import sys # type: ignore
+import os # type: ignore  # noqa: F401
+import sys # type: ignore  # noqa: F401
 
 def execute_python_code(code: str) -> str | None:
     """Executes arbitrary Python code. This function runs the code in current interpreter, therefore you should assume that only standard library is available and you should never try using anything else. Assume `os` and `sys` modules are already imported.
