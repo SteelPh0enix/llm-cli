@@ -149,7 +149,7 @@ def _parse_doc_comment(comment: str) -> tuple[str, dict[str, str]]:
     parameters_docs = comment[
         parameters_header_position + len(parameters_header) :
     ].strip()
-    parameters = {}
+    parameters: dict[str, str] = {}
 
     for line in [line.strip() for line in parameters_docs.splitlines()]:
         match = re.match(parameter_regex, line)
@@ -174,7 +174,7 @@ class LLMFunction:
     name: str
     description: str
     parameters: LLMParameterObject
-    function: Callable
+    function: Callable[..., Any]
 
     def to_json(self) -> dict[str, Any]:
         """
@@ -194,7 +194,7 @@ class LLMFunction:
         }
 
     @staticmethod
-    def from_python_function(function: Callable) -> LLMFunction:
+    def from_python_function(function: Callable[..., Any]) -> LLMFunction:
         """
         Convert a Python function to an LLMFunction object.
 
@@ -299,7 +299,7 @@ def load_tools(tools_directory: Path = Path("./tools")) -> list[LLMFunction]:
         list[LLMFunction]: A list of LLM function objects.
     """
 
-    functions = []
+    functions: list[LLMFunction] = []
 
     for python_file in tools_directory.glob("*.py"):
         function_name = python_file.stem
