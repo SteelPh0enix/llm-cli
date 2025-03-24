@@ -55,7 +55,7 @@ def colored_user_message(text: str) -> str:
     return colored(text, "green")
 
 
-def colored_agent_message(text: str) -> str:
+def colored_assistant_message(text: str) -> str:
     return colored(text, "red")
 
 
@@ -70,7 +70,10 @@ class CLIArgs:
 def parse_args() -> CLIArgs:
     parser = argparse.ArgumentParser(
         description="Chat with ollama-managed LLMs",
-        epilog=f"Colors:\n{colored_system_message('System message')}\n{colored_user_message('User message')}\n{colored_agent_message('Agent message')}\n",
+        epilog="Colors:\n"
+        f"{colored_system_message('System message')}\n"
+        f"{colored_user_message('User message')}\n"
+        f"{colored_assistant_message('Assistant message')}",
     )
 
     parser.add_argument(
@@ -109,7 +112,7 @@ def stream_chat_response(model: str, chat: ChatHistory) -> str:
     for chunk in stream:
         message_chunk = chunk.message.content
         complete_message += cast(str, message_chunk)
-        print(colored_agent_message(message_chunk), end="", flush=True)  # type: ignore
+        print(colored_assistant_message(message_chunk), end="", flush=True)  # type: ignore
 
     print(flush=True)
     return complete_message
