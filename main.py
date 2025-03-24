@@ -79,7 +79,6 @@ def parse_args() -> CLIArgs:
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose logging"
     )
-    parser.add_argument("--debug", action="store_true", help="Enable debug logs")
     parser.add_argument(
         "-m",
         "--model",
@@ -87,6 +86,8 @@ def parse_args() -> CLIArgs:
         help="Specify the model to use",
         default=DEFAULT_MODEL_NAME,
     )
+
+    parser.add_argument("--debug", action="store_true", help="Enable debug logs")
 
     args = parser.parse_args()
     return CLIArgs(
@@ -108,7 +109,7 @@ def stream_chat_response(model: str, chat: ChatHistory) -> str:
     for chunk in stream:
         message_chunk = chunk.message.content
         complete_message += cast(str, message_chunk)
-        print(message_chunk, end="", flush=True)
+        print(colored_agent_message(message_chunk), end="", flush=True)  # type: ignore
 
     print(flush=True)
     return complete_message
