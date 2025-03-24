@@ -13,6 +13,14 @@ from termcolor import colored
 from tools_loader import LLMFunction, load_tools
 
 DEFAULT_MODEL_NAME = "MistralSmall:latest"
+SYSTEM_PROMPT = """You are Mistral Small 3.1, a Large Language Model (LLM) created by Mistral AI, a French startup headquartered in Paris.
+You power an AI assistant called llm-ui.
+
+When you're not sure about some information, you say that you don't have the information and don't make up anything.
+If the user's question is not clear, ambiguous, or does not provide enough context for you to accurately answer the question, you do not try to answer it right away and you rather ask the user to clarify their request (e.g. "What are some good restaurants around me?" => "Where are you?" or "When is the next flight to Tokyo" => "Where do you travel from?").
+You are always very attentive to dates, in particular you try to resolve dates, and when asked about information at specific dates, you discard information that is at another date.
+You follow these instructions in all languages, and always respond to the user in the language they use or request."""
+TOOL_USE_PROMPT = """Use provided tools to assist the user best to your ability. If the user asks for a solution of complex issue, break it down to smaller steps and ask for each step to be completed before moving on to the next one. This is the user's request: """
 
 
 @dataclass
@@ -151,6 +159,27 @@ def tools_list_to_str(tools: list[LLMFunction]) -> str:
     )
 
 
+def handle_tool_call(
+    prompt: str, model: str, chat: ChatHistory, tools: list[LLMFunction]
+) -> ChatHistory:
+    chat.add_user_message(prompt)
+    response, called_tool_name = use_tool(model, chat, tools)
+    if called_tool_name:
+        chat.add_tool_message(response)
+        print(
+            colored_system_message(
+                f"Called tool '{called_tool_name}', got result: '{response}'"
+            )
+        )
+        assistant_response = stream_chat_response(model, chat)
+        chat.add_assistant_message(assistant_response)
+    else:
+        print(colored_assistant_message(response))
+        chat.add_assistant_message(response)
+
+    return chat
+
+
 def handle_user_command(
     command: str,
     prompt: str,
@@ -162,10 +191,13 @@ def handle_user_command(
 
     match command:
         case "tool":
-            response, called_tool_name = use_tool(model, chat, tools)
+            chat = handle_tool_call(prompt, model, chat, tools)
+        case "tool-prompt":
+            chat = handle_tool_call(TOOL_USE_PROMPT + prompt, model, chat, tools)
+        case "exit":
+            raise KeyboardInterrupt()
         case _:
             print(colored_system_message(f"Invalid command: {command}"))
-            return chat
 
     return chat
 
@@ -227,6 +259,7 @@ def main() -> int:
         return 0
 
     chat = ChatHistory()
+    chat.add_system_message(SYSTEM_PROMPT)
 
     logging.info("Detected tools:")
     logging.info(f"\n{tools_list_to_str(tools)}")
