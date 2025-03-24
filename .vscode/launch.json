@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug llm-cli",
+            "name": "Debug llm-ui",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",

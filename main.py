@@ -22,7 +22,7 @@ class CLIArgs:
 
 def parse_args() -> CLIArgs:
     parser = argparse.ArgumentParser(
-        description="Chat with ollama-managed LLMs via CLI"
+        description="Chat with ollama-managed LLMs"
     )
     parser.add_argument(
         "-l", "--list-tools", action="store_true", help="List available tools"

@@ -80,7 +80,7 @@ wheels = [
 ]
 
 [[package]]
-name = "llm-cli"
+name = "llm-ui"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

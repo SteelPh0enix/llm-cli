@@ -1,7 +1,7 @@
 [project]
-name = "llm-cli"
+name = "llm-ui"
 version = "0.1.0"
-description = "Utility scripts for interacting with ollama-managed LLMs via CLI"
+description = "Utility for interacting with ollama-managed LLMs"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
