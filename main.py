@@ -270,23 +270,6 @@ def main() -> int:
             if not prompt:
                 continue
             chat = process_conversation(prompt, args.model, chat, tools)
-            # conversation.append({"role": "user", "content": prompt})
-            # logging.debug(f"Querying LLM with following conversation: {conversation}")
-            # if prompt.startswith("/tool"):
-            #     response, called_tool_name = use_tool(conversation, tools)
-            #     if called_tool_name:
-            #         conversation.append({"role": "tool", "content": response})
-            #         print(f"[{called_tool_name} called, return value: {response}]")
-            #         post_tool_response = stream_chat_response(conversation)
-            #         conversation.append(
-            #             {"role": "assistant", "content": post_tool_response}
-            #         )
-            #     else:
-            #         conversation.append({"role": "assistant", "content": response})
-            #         print(response)
-            # else:
-            #     response = stream_chat_response(conversation)
-            #     conversation.append({"role": "assistant", "content": response})
         except KeyboardInterrupt:
             print(flush=True)
             return 0
