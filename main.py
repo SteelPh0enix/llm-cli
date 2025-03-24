@@ -78,11 +78,13 @@ class CLIArgs:
 
 def parse_args() -> CLIArgs:
     parser = argparse.ArgumentParser(
-        description="Chat with ollama-managed LLMs",
-        epilog="Colors:\n"
+        description="Chat with ollama-managed LLMs.\n\n"
+        "Message colors:\n"
         f"{colored_system_message('System message')}\n"
         f"{colored_user_message('User message')}\n"
-        f"{colored_assistant_message('Assistant message')}",
+        f"{colored_assistant_message('Assistant message')}\n"
+        "Tools may generate output of arbitrary color.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.add_argument(
