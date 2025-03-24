@@ -32,9 +32,10 @@ class ChatMessage:
         return {"role": self.role, "content": self.content}
 
 
-class ChatHistory:
+class ChatSession:
     def __init__(self, system_prompt: str = SYSTEM_PROMPT) -> None:
         self.messages: list[ChatMessage] = []
+        self.tools_enabled = False
         self.add_system_message(system_prompt)
 
     def _add_message(self, role: str, message: str) -> None:
@@ -51,6 +52,15 @@ class ChatHistory:
 
     def add_tool_message(self, message: str) -> None:
         self._add_message("tool", message)
+
+    def enable_tools_usage(self):
+        self.tools_enabled = True
+
+    def disable_tools_usage(self):
+        self.tools_enabled = False
+
+    def are_tools_enabled(self) -> bool:
+        return self.tools_enabled
 
     def to_json(self) -> list[dict[str, str]]:
         return [msg.to_json() for msg in self.messages]
@@ -112,7 +122,7 @@ def parse_args() -> CLIArgs:
     )
 
 
-def stream_chat_response(model: str, chat: ChatHistory) -> str:
+def stream_chat_response(model: str, chat: ChatSession) -> str:
     stream: Iterator[ollama.ChatResponse] = ollama.chat(  # type: ignore
         model=model,
         messages=chat.to_json(),
@@ -130,7 +140,7 @@ def stream_chat_response(model: str, chat: ChatHistory) -> str:
 
 
 def use_tool(
-    model: str, chat: ChatHistory, tools: list[LLMFunction]
+    model: str, chat: ChatSession, tools: list[LLMFunction]
 ) -> tuple[str, str | None]:
     response: ollama.ChatResponse = ollama.chat(  # type: ignore
         model=model,
@@ -163,8 +173,8 @@ def tools_list_to_str(tools: list[LLMFunction]) -> str:
 
 
 def handle_tool_call(
-    prompt: str, model: str, chat: ChatHistory, tools: list[LLMFunction]
-) -> ChatHistory:
+    prompt: str, model: str, chat: ChatSession, tools: list[LLMFunction]
+) -> ChatSession:
     chat.add_user_message(prompt)
     response, called_tool_name = use_tool(model, chat, tools)
     if called_tool_name:
@@ -187,29 +197,36 @@ def handle_user_command(
     command: str,
     prompt: str,
     model: str,
-    chat: ChatHistory,
+    chat: ChatSession,
     tools: list[LLMFunction],
-) -> ChatHistory:
+) -> ChatSession:
     logging.info(f"Handling user command '{command}' with prompt '{prompt}'")
 
     match command:
         case "tool":
+            print(colored_system_message("This prompt will have tool calling enabled."))
             chat = handle_tool_call(prompt, model, chat, tools)
-        case "tool-prompt":
+        case "tool-start":
+            chat.enable_tools_usage()
+            print(colored_system_message("Starting tool-assisted session."))
             chat = handle_tool_call(TOOL_USE_PROMPT + prompt, model, chat, tools)
+        case "tool-end":
+            print(colored_assistant_message("Ending tool-assisted session."))
+            chat.disable_tools_usage()
         case "tool-list":
             print(colored_system_message(tools_list_to_str(tools)))
         case "exit":
             raise KeyboardInterrupt()
         case "reset":
             print(colored_system_message("Resetting conversation context..."))
-            chat = ChatHistory()
+            chat = ChatSession()
         case "help":
             print(
                 colored_system_message(
                     "Available commands:\n"
-                    "tool: enable tool calling\n"
-                    "tool-prompt: enable tool calling + apply a prompt to encourage tool usage\n"
+                    "tool: enable tool calling for single prompt\n"
+                    "tool-start: enable tool calling until tool-end and apply an additional prompt to this message to encourage tool usage\n"
+                    "tool-end: disable tool calling\n"
                     "tool-list: print a list of available tools\n"
                     "exit the application\n"
                     "reset: reset the conversation to its initial state (with system prompt message)\n"
@@ -217,7 +234,7 @@ def handle_user_command(
                 )
             )
         case _:
-            print(colored_system_message(f"Invalid command: '{command}', try /help"))
+            print(colored_system_message(f"Invalid command: '{command}', try /help."))
 
     return chat
 
@@ -225,9 +242,9 @@ def handle_user_command(
 def process_conversation(
     prompt: str,
     model: str,
-    chat: ChatHistory,
+    chat: ChatSession,
     tools: list[LLMFunction],
-) -> ChatHistory:
+) -> ChatSession:
     if prompt.startswith("/"):
         command_end_index = prompt.find(" ")
         if command_end_index == -1:
@@ -249,8 +266,11 @@ def process_conversation(
 
     logging.info(f"Processing conversation with prompt '{prompt}'")
     chat.add_user_message(prompt)
-    response = stream_chat_response(model, chat)
-    chat.add_assistant_message(response)
+    if chat.are_tools_enabled():
+        chat = handle_tool_call(prompt, model, chat, tools)
+    else:
+        response = stream_chat_response(model, chat)
+        chat.add_assistant_message(response)
 
     return chat
 
@@ -278,7 +298,7 @@ def main() -> int:
         print(tools_list_to_str(tools))
         return 0
 
-    chat = ChatHistory()
+    chat = ChatSession()
 
     logging.info("Detected tools:")
     logging.info(f"\n{tools_list_to_str(tools)}")
