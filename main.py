@@ -196,7 +196,6 @@ def handle_user_command(
         case "tool-prompt":
             chat = handle_tool_call(TOOL_USE_PROMPT + prompt, model, chat, tools)
         case "exit":
-            print(colored_system_message("Exiting..."))
             raise KeyboardInterrupt()
         case "reset":
             print(colored_system_message("Resetting conversation context..."))
@@ -290,7 +289,7 @@ def main() -> int:
                 continue
             chat = process_conversation(prompt, args.model, chat, tools)
         except KeyboardInterrupt:
-            print(flush=True)
+            print(colored_system_message("Exiting..."))
             return 0
 
 
