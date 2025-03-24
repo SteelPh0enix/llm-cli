@@ -33,8 +33,9 @@ class ChatMessage:
 
 
 class ChatHistory:
-    def __init__(self) -> None:
+    def __init__(self, system_prompt: str = SYSTEM_PROMPT) -> None:
         self.messages: list[ChatMessage] = []
+        self.add_system_message(system_prompt)
 
     def _add_message(self, role: str, message: str) -> None:
         self.messages.append(ChatMessage(role, message))
@@ -195,9 +196,20 @@ def handle_user_command(
         case "tool-prompt":
             chat = handle_tool_call(TOOL_USE_PROMPT + prompt, model, chat, tools)
         case "exit":
+            print(colored_system_message("Exiting..."))
             raise KeyboardInterrupt()
+        case "reset":
+            print(colored_system_message("Resetting conversation context..."))
+            chat = ChatHistory()
+        case "help":
+            print(colored_system_message("Available commands:"))
+            print(colored_system_message("tool: enable tool calling"))
+            print(colored_system_message("tool-prompt: enable tool calling + apply a prompt to encourage tool usage"))
+            print(colored_system_message("exit: exit the application"))
+            print(colored_system_message("reset: reset the conversation to its initial state (with system prompt message)"))
+            print(colored_system_message("help: print this message"))
         case _:
-            print(colored_system_message(f"Invalid command: {command}"))
+            print(colored_system_message(f"Invalid command: '{command}', try /help"))
 
     return chat
 
@@ -259,7 +271,6 @@ def main() -> int:
         return 0
 
     chat = ChatHistory()
-    chat.add_system_message(SYSTEM_PROMPT)
 
     logging.info("Detected tools:")
     logging.info(f"\n{tools_list_to_str(tools)}")
