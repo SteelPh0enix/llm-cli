@@ -111,7 +111,7 @@ def parse_args() -> CLIArgs:
 
 
 def stream_chat_response(model: str, chat: ChatHistory) -> str:
-    stream: Iterator[ollama.ChatResponse] = ollama.chat(
+    stream: Iterator[ollama.ChatResponse] = ollama.chat( # type: ignore
         model=model,
         messages=chat.to_json(),
         stream=True,
@@ -130,7 +130,7 @@ def stream_chat_response(model: str, chat: ChatHistory) -> str:
 def use_tool(
     model: str, chat: ChatHistory, tools: list[LLMFunction]
 ) -> tuple[str, str | None]:
-    response: ollama.ChatResponse = ollama.chat(
+    response: ollama.ChatResponse = ollama.chat( # type: ignore
         model=model,
         messages=chat.to_json(),
         tools=[tool.to_json() for tool in tools],
@@ -146,9 +146,9 @@ def use_tool(
         raise ValueError(f"Unknown tool: {tool_function.name}")
 
     tool = [tool for tool in tools if tool.name == tool_function.name][0]
-    tool_result = tool.function(**tool_function.arguments)
+    tool_result = tool.function(**tool_function.arguments) # type: ignore
 
-    return str(tool_result), tool_function.name
+    return str(tool_result), tool_function.name # type: ignore
 
 
 def tools_list_to_str(tools: list[LLMFunction]) -> str:
