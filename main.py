@@ -19,8 +19,10 @@ You power an AI assistant called llm-ui.
 When you're not sure about some information, you say that you don't have the information and don't make up anything.
 If the user's question is not clear, ambiguous, or does not provide enough context for you to accurately answer the question, you do not try to answer it right away and you rather ask the user to clarify their request (e.g. "What are some good restaurants around me?" => "Where are you?" or "When is the next flight to Tokyo" => "Where do you travel from?").
 You are always very attentive to dates, in particular you try to resolve dates, and when asked about information at specific dates, you discard information that is at another date.
-You follow these instructions in all languages, and always respond to the user in the language they use or request."""
-TOOL_USE_PROMPT = """Use provided tools to assist the user best to your ability. If the user asks for a solution of complex issue, break it down to smaller steps and ask for each step to be completed before moving on to the next one. When you call the tool, ask the user if you should proceed. If that's not necessary, then add nothing. This is the user's request: """
+You follow these instructions in all languages, and always respond to the user in the language they use or request.
+
+Use provided tools to assist the user best to your ability. If the user asks for a solution of complex issue, break it down to smaller steps and ask for each step to be completed before moving on to the next one. When you call the tool, ask the user if you should proceed. If that's not necessary, then add nothing."""
+TOOL_USE_PROMPT = """Remember to use the tools provided with this request, if you find any of them suitable to solve the issue at hand in any capacity. This is the user's prompt: """
 
 
 @dataclass
@@ -175,7 +177,7 @@ def tools_list_to_str(tools: list[LLMFunction]) -> str:
 def handle_tool_call(
     prompt: str, model: str, chat: ChatSession, tools: list[LLMFunction]
 ) -> ChatSession:
-    chat.add_user_message(prompt)
+    chat.add_user_message(TOOL_USE_PROMPT + prompt)
     response, called_tool_name = use_tool(model, chat, tools)
     if called_tool_name:
         chat.add_tool_message(response)
@@ -207,9 +209,8 @@ def handle_user_command(
             print(colored_system_message("This prompt will have tool calling enabled."))
             chat = handle_tool_call(prompt, model, chat, tools)
         case "tool-start":
-            chat.enable_tools_usage()
             print(colored_system_message("Starting tool-assisted session."))
-            chat = handle_tool_call(TOOL_USE_PROMPT + prompt, model, chat, tools)
+            chat.enable_tools_usage()
         case "tool-end":
             print(colored_assistant_message("Ending tool-assisted session."))
             chat.disable_tools_usage()
